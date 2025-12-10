@@ -1,5 +1,5 @@
 // Imports
-import { getItems, createItem, updateItem, deleteItem } from "./api.js";
+import { getItems, createItem, updateItem, deleteItem, generateLLM } from "./api.js";
 
 let quizData = []; 
 let currentQuizId = null; 
@@ -103,7 +103,9 @@ function renderManagementList() {
     editBtn.className = 'edit-btn';
     editBtn.title = 'แก้ไข';
     editBtn.innerHTML = '&#9998;';
-    editBtn.addEventListener('click', () => editQuiz(quiz._id));
+    editBtn.addEventListener('click', () => {
+      editQuiz(quiz._id)
+    });
 
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
@@ -152,7 +154,6 @@ function editQuiz(id) {
   customEmotionQuestions    = JSON.parse(JSON.stringify(quizToEdit.questions?.emotion    ?? []));
   customAppearanceQuestions = JSON.parse(JSON.stringify(quizToEdit.questions?.appearance ?? []));
   customQuizResults         = JSON.parse(JSON.stringify(quizToEdit.results               ?? []));
-
   renderAllCreatorLists();
   switchView('creator');
 }
@@ -367,82 +368,66 @@ function addOrUpdateManualResult() {
   resetResultForm();
 }
 
-function generateImageForCurrentResult(event) {
-  event.preventDefault();
-  const title = document.getElementById('manual-result-title').value.trim();
-  if (!title) {
-    alert('กรุณาใส่ "ชื่อผลลัพธ์" ก่อนสร้างรูปภาพ');
-    return;
-  }
-  const encodedTitle = encodeURIComponent(title);
-  const randomBgColor = Math.floor(Math.random() * 16777215)
-    .toString(16).padStart(6, '0');
-  const imageUrl = `https://placehold.co/600x400/${randomBgColor}/ffffff?text=${encodedTitle}`;
-  const imageInput = document.getElementById('manual-result-image');
-  imageInput.value = imageUrl;
+// async function generateImageForCurrentResult(event) {
+//   event.preventDefault();
+//   const title = document.getElementById('manual-result-title').value.trim();
+//   if (!title) {
+//     alert('กรุณาใส่ "ชื่อผลลัพธ์" ก่อนสร้างรูปภาพ');
+//     return;
+//   }
+//   loadingOverlay.style.display = 'flex';
+//   try {
+//     const imageUrl = await generateImage(title);
+//     const imageInput = document.getElementById('manual-result-image');
+//     imageInput.value = imageUrl;
 
-  const genBtn = event.currentTarget;
-  const originalText = genBtn.innerHTML;
-  genBtn.innerHTML = 'สร้างแล้ว!';
-  genBtn.disabled = true;
-  setTimeout(() => {
-    genBtn.innerHTML = originalText;
-    genBtn.disabled = false;
-  }, 1500);
-}
+//     const genBtn = event.currentTarget;
+//     const originalText = genBtn.innerHTML;
+//     genBtn.innerHTML = 'สร้างแล้ว!';
+//     genBtn.disabled = true;
+//     setTimeout(() => {
+//       genBtn.innerHTML = originalText;
+//       genBtn.disabled = false;
+//     }, 1500);
+//   } catch(err) {
+//     console.log("Image gen error: ", err);
+//   } finally {
+//     loadingOverlay.style.display = 'none';
+//   }
+// }
+  
 
 async function generateWithLLM(type) {
   const categoryName = document.getElementById('category-name-input').value.trim();
   if (!categoryName) { alert('กรุณาใส่ชื่อแบบทดสอบก่อน'); return; }
-
-  const AI_API_KEY = "AIzaSyDWAaz-IlyPd0Y2Ztnd2OBII8w7cu8NqPQ";
-  const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`;
-
-  let prompt = '';
-  if (type === 'emotion_questions') {
-    prompt = `สำหรับแบบทดสอบ "${categoryName}", สร้างคำถาม 2 ข้อเพื่อวิเคราะห์ "ด้านอารมณ์". แต่ละข้อมี 4 ตัวเลือกพร้อมคะแนน 1-4. ตอบเป็น JSON Array เท่านั้น: [{"question":"...","answers":[{"text":"...","points":1}, ...]}, ... ]`;
-  } else if (type === 'appearance_questions') {
-    prompt = `สำหรับแบบทดสอบ "${categoryName}", สร้างคำถาม 2 ข้อเพื่อวิเคราะห์ "ด้านรูปลักษณ์". แต่ละข้อมี 4 ตัวเลือกพร้อมคะแนน 1-4. ตอบเป็น JSON Array เท่านั้น: [{"question":"...","answers":[{"text":"...","points":1}, ...]}, ... ]`;
-  } else if (type === 'results') {
-    if (customEmotionQuestions.length < 1 || customAppearanceQuestions.length < 1) {
-      alert('ต้องมีคำถามอารมณ์และรูปลักษณ์อย่างน้อย 1 ข้อ');
-      return;
-    }
-    const maxScoreX = customEmotionQuestions.reduce((sum, q) => sum + Math.max(...q.answers.map(a => a.points)), 0);
-    const maxScoreY = customAppearanceQuestions.reduce((sum, q) => sum + Math.max(...q.answers.map(a => a.points)), 0);
-    const midPointX = Math.ceil(maxScoreX / 2);
-    const midPointY = Math.ceil(maxScoreY / 2);
-
-    prompt = `สำหรับแบบทดสอบ "${categoryName}", สร้างผลลัพธ์ 4 แบบตามแกน X (อารมณ์, สูงสุด ${maxScoreX}) และ Y (รูปลักษณ์, สูงสุด ${maxScoreY}).
-1. X <= ${midPointX}, Y <= ${midPointY}
-2. X > ${midPointX}, Y <= ${midPointY}
-3. X <= ${midPointX}, Y > ${midPointY}
-4. X > ${midPointX}, Y > ${midPointY}
-ตอบเป็น JSON Array 4 object เท่านั้น: [{"title":"...", "description":"...", "imageUrl":"https://placehold.co/600x400", "condition_x": {"op":"<=", "val":${midPointX}}, "condition_y": {"op":"<=", "val":${midPointY}}}, ... ]`;
+  if(type==="results" && (customEmotionQuestions.length < 1 || customAppearanceQuestions.length < 1)) {
+    alert('ต้องมีคำถามอารมณ์และรูปลักษณ์อย่างน้อย 1 ข้อ');
+    return
   }
-
-  if (!AI_API_KEY) {
-    alert("ไม่ได้ตั้งค่า API Key — จะไม่เรียก AI จริง ๆ\n(ยังสามารถเพิ่ม/แก้คำถามเองได้)");
-    return;
-  }
+  const maxScoreX = customEmotionQuestions.reduce((sum, q) => sum + Math.max(...q.answers.map(a => a.points)), 0);
+  const maxScoreY = customAppearanceQuestions.reduce((sum, q) => sum + Math.max(...q.answers.map(a => a.points)), 0);
 
   loadingOverlay.style.display = 'flex';
   try {
-    const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
-    const resp = await fetch(`${MODEL_URL}?key=${AI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!resp.ok) throw new Error(`API status ${resp.status}`);
-    const result = await resp.json();
-    let generatedText = result.candidates[0].content.parts[0].text
-      .replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsedJson = JSON.parse(generatedText);
+    const resp = await generateLLM({type, maxScoreX, maxScoreY, categoryName})
+    // console.log(resp);
+    if(!resp) {
+      alert("Bad response.");
+      return;
+    }
+    const result = resp;
+    let generatedText = result.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+    let parsedJson = JSON.parse(generatedText);
 
     if (type === 'emotion_questions') customEmotionQuestions.push(...parsedJson);
     else if (type === 'appearance_questions') customAppearanceQuestions.push(...parsedJson);
-    else if (type === 'results') customQuizResults = parsedJson;
+    else if (type === 'results') {
+      for(let item of parsedJson) {
+        item.imageUrl = `https://placehold.co/600x400/cccccc/ffffff?text=${item.title}`;
+      }
+      console.log(parsedJson);
+      customQuizResults = parsedJson;
+    }
 
     renderAllCreatorLists();
   } catch (err) {
@@ -464,12 +449,20 @@ async function postCustomQuiz() {
     questions: { emotion: customEmotionQuestions, appearance: customAppearanceQuestions },
     results: customQuizResults
   };
-
+  // console.log("EDITING QUIZ?: ", editingQuizId)
   try {
     loadingOverlay.style.display = 'flex';
-    const created = await createItem(payload);
-    quizData.push(created); // keep local list in sync
-    alert('บันทึกแบบทดสอบสำเร็จ!');
+    if(editingQuizId) {
+      const item = await updateItem(editingQuizId, payload);
+      const pos = quizData.findIndex((it) => it._id===editingQuizId);
+      if(pos!==-1) quizData[pos]=item;
+      console.log("EDITING ID: ", editingQuizId);
+      editingQuizId = null;
+    } else {
+      const created = await createItem(payload);
+      quizData.push(created); // keep local list in sync
+      alert('บันทึกแบบทดสอบสำเร็จ!');
+    }
     showManagementView();
     renderCategorySelection();
   } catch (e) {
@@ -616,8 +609,8 @@ function bindUI() {
   const genResult = document.getElementById("gen-result");
   if (genResult) genResult.addEventListener("click", () => generateWithLLM('results'));
 
-  const genImage = document.getElementById("gen-image");
-  if (genImage) genImage.addEventListener("click", generateImageForCurrentResult);
+  // const genImage = document.getElementById("gen-image");
+  // if (genImage) genImage.addEventListener("click", generateImageForCurrentResult);
 
   const addUpdManRes = document.getElementById("add-update-manual-result");
   if (addUpdManRes) addUpdManRes.addEventListener("click", addOrUpdateManualResult);

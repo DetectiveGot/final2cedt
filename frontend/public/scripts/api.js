@@ -1,4 +1,3 @@
-
 import { BACKEND_URL } from "./config.js";
 
 async function handle(res, label) {
@@ -11,6 +10,7 @@ async function handle(res, label) {
 
 export async function getItems() {
   const r = await fetch(`${BACKEND_URL}/questions`);
+  // console.log("Getting items");
   return handle(r, "GET /questions");
 }
 
@@ -41,3 +41,21 @@ export async function updateItem(id, item) {
   });
   return handle(r, "PUT /questions/:id");
 }
+
+export async function generateLLM(data) {
+  const res = await fetch(`${BACKEND_URL}/api/llm`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  })
+  return handle(res, "POST /api/llm");
+}
+
+// export async function generateImage(data) {
+//   const res = await fetch(`${BACKEND_URL}/api/image`, {
+//     method: "POST",
+//     headers: {"Content-Type": "application/json"},
+//     body: JSON.stringify({prompt: data})
+//   })
+//   return handle(res, "POST /api/image");
+// }

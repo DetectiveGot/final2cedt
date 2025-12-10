@@ -16,13 +16,6 @@ export async function createItem(req, res) {
   try {
     const { title, questions, results } = req.body;
     if (!title) return res.status(400).json({ message: "title required" });
-
-    // const doc = await Item.create({
-    //   title,
-    //   questions: questions ?? { emotion: [], appearance: [] },
-    //   results: results ?? [],
-    // });
-
     const doc = await Item({
       title,
       questions: questions ?? { emotion: [], appearance: [] },
@@ -39,6 +32,7 @@ export async function createItem(req, res) {
 
 // PUT /questions/:id
 export async function updateItem(req, res) {
+  console.log(req.body);
   try {
     const { id } = req.params;
     const { title, questions, results } = req.body;

@@ -1,36 +1,3 @@
-// import mongoose from "mongoose";
-
-// const AnswerSchema = new mongoose.Schema({
-//   text: String,
-//   points: Number,
-// }, { _id: false });
-
-// const QA = new mongoose.Schema({
-//   question: String,
-//   answers: [AnswerSchema],
-// }, { _id: false });
-
-// const ResultSchema = new mongoose.Schema({
-//   title: String,
-//   description: String,
-//   imageUrl: String,
-//   condition_x: { op: String, val: Number },
-//   condition_y: { op: String, val: Number },
-// }, { _id: false });
-
-// const ItemSchema = new mongoose.Schema({
-//   title: { type: String, required: true },
-//   questions: {
-//     emotion: [QA],
-//     appearance: [QA],
-//   },
-//   results: [ResultSchema],
-// }, { timestamps: true });
-
-// const Item = mongoose.model("Item", ItemSchema);
-// export default Item;
-
-
 import mongoose from "mongoose";
 
 const AnswerSchema = new mongoose.Schema({

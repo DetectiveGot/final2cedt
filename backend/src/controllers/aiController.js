@@ -5,7 +5,7 @@ const AI_MODEL = "gemini-2.5-flash";
 const ai = new GoogleGenAI({apiKey: AI_API_KEY})
 
 export async function generateLLM(req, res) {
-    console.log(req.body);
+    // console.log(req.body);
     if(!req.body) {
         return res.status(404);
     }

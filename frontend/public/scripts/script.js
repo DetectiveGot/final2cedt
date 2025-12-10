@@ -407,7 +407,7 @@ async function generateWithLLM(type) {
   const maxScoreX = customEmotionQuestions.reduce((sum, q) => sum + Math.max(...q.answers.map(a => a.points)), 0);
   const maxScoreY = customAppearanceQuestions.reduce((sum, q) => sum + Math.max(...q.answers.map(a => a.points)), 0);
 
-  loadingOverlay.style.display = 'flex';
+  loadingOverlay.style.display = 'block';
   try {
     const resp = await generateLLM({type, maxScoreX, maxScoreY, categoryName})
     // console.log(resp);
@@ -434,7 +434,7 @@ async function generateWithLLM(type) {
     console.error("LLM error:", err);
     alert("เกิดข้อผิดพลาดในการสร้างข้อมูล: " + err.message);
   } finally {
-    loadingOverlay.style.display = 'none';
+    loadingOverlay.style.display = 'flex';
   }
 }
 

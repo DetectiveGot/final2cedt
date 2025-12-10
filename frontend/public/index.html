@@ -131,7 +131,7 @@
                         <div id="manual-result-form" class="creator-question-item" style="background-color: #1f2937;">
                             <input type="hidden" id="editing-result-index" value="-1">
                             <input type="text" id="manual-result-title" class="form-control" placeholder="ชื่อผลลัพธ์ (เช่น อเมทิสต์)" style="margin-bottom: 0.5rem;">
-                            <textarea id="manual-result-desc" class="form-control" placeholder="คำอธิบายผลลัพธ์" style="margin-bottom: 0.5rem; rows: 2;"></textarea>
+                            <textarea id="manual-result-desc" class="form-control" placeholder="คำอธิบายผลลัพธ์" style="margin-bottom: 0.5rem;"></textarea>
                             
                             <label class="form-label" style="font-size: 0.875rem; display: block; margin-bottom: 0.25rem;">รูปภาพ</label>
                             <div class="input-group" style="margin-bottom: 0.75rem;">
@@ -142,7 +142,7 @@
                             <div class="condition-group">
                                 <span>ถ้าคะแนนอารมณ์ </span>
                                 <select id="condition-x-op" class="form-control">
-                                    <option value="=">&le; (น้อยกว่าหรือเท่ากับ)</option>
+                                    <option value="<=">&le; (น้อยกว่าหรือเท่ากับ)</option>
                                     <option value=">">&gt; (มากกว่า)</option>
                                 </select>
                                 <input type="number" id="condition-x-val" class="form-control" placeholder="ค่า">
@@ -170,7 +170,7 @@
             </div>
 
             <div id="loading-overlay" class="loading-overlay" style="display: none;">
-                <div style="text-align:center;">
+                <div class="flex flex-col items-center justify-center">
                     <div class="spinner"></div>
                     <p style="color: white; margin-top: 1rem; font-size: 1.125rem;">กำลังใช้เวทมนตร์สร้างสรรค์...</p>
                 </div>

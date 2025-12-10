@@ -32,7 +32,7 @@ export async function createItem(req, res) {
 
 // PUT /questions/:id
 export async function updateItem(req, res) {
-  console.log(req.body);
+  // console.log(req.body);
   try {
     const { id } = req.params;
     const { title, questions, results } = req.body;
